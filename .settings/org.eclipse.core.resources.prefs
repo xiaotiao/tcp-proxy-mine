@@ -1,0 +1,8 @@
+eclipse.preferences.version=1
+encoding//src/main/java/com/liusu/tcp_proxy_mine/handler/NetGateProxyBackendChannelHandler.java=UTF-8
+encoding//src/main/java/com/liusu/tcp_proxy_mine/handler/NetGateProxyChannelHandler.java=UTF-8
+encoding//src/main/java/com/liusu/tcp_proxy_mine/handler/ProxyFrontendHandler.java=UTF-8
+encoding//src/main/resources/param.properties=UTF-8
+encoding//src/main/resources/reference.conf=UTF-8
+encoding//src/test/java/com/liusu/tcp_proxy_mine/PatternTest.java=UTF-8
+encoding//src/test/java/com/liusu/tcp_proxy_mine/server/ReadBackServer.java=UTF-8

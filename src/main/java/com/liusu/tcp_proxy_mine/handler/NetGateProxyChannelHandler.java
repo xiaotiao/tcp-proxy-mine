@@ -40,7 +40,7 @@ public class NetGateProxyChannelHandler extends DefaultProxyChannelHandler {
 				 String channelID = mes.getDestChannelID();
 				 Channel destChannel = Constant.inboundChannles.get(channelID);
 				 if(!Objects.isNull(destChannel) && destChannel.isActive()){
-					 destChannel.writeAndFlush(MessageWrap.wrapMessageByteBuf(mes)).addListener(new ChannelFutureListener(){
+					 destChannel.writeAndFlush(mes.getMessage()).addListener(new ChannelFutureListener(){
 
 						@Override
 						public void operationComplete(ChannelFuture future)

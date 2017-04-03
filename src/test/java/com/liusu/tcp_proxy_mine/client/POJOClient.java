@@ -59,7 +59,7 @@ public class POJOClient {
 
 		MessageWrap mess = new MessageWrap();
 		Object obj = Unpooled.wrappedBuffer("Hello World!".getBytes());
-		mess = MessageWrap.wrapMessageByteArray("123", "Hello World!".getBytes(), new InetSocketAddress("localhost",50088));
+		mess = new MessageWrap("123", "Hello World!".getBytes(), new InetSocketAddress("localhost",50088));
 		
 		ChannelFuture f = b.connect(host, port).sync();
 

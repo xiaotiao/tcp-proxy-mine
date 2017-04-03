@@ -19,7 +19,7 @@ public  class  DefaultProxyChannelHandler extends ChannelInboundHandlerAdapter{
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		
-		System.out.println(ctx.channel() + "inactive...");
+//		System.out.println(ctx.channel() + "inactive...");
 		 Constant.inboundChannles.remove(ctx.channel().id().asShortText());
 		
 	}

@@ -34,19 +34,21 @@ public final class ServerBootstrapFactory {
 			.parseInt(Constant.paramProp.getProperty("WORKER_GROUP_THREADS"));
 
 	private static ServerBootstrap serBootstrap = null;
-	
-	private static final EventLoopGroup bossGroup = new NioEventLoopGroup(BOSS_GROUP_THREADS);
-	
-	private static final EventLoopGroup workerGroup = new NioEventLoopGroup(WORKER_GROUP_THREADS);
+
+	private static final EventLoopGroup bossGroup = new NioEventLoopGroup(
+			BOSS_GROUP_THREADS);
+
+	private static final EventLoopGroup workerGroup = new NioEventLoopGroup(
+			WORKER_GROUP_THREADS);
 
 	private ServerBootstrapFactory() {
 
 	}
 
-	public static synchronized ServerBootstrap getServerBootstrap(){
+	public static synchronized ServerBootstrap getServerBootstrap() {
 		return getServerBootstrap(PROXY_CODE);
 	}
-	
+
 	public static synchronized ServerBootstrap getServerBootstrap(int proxyCode) {
 
 		if (!Objects.isNull(serBootstrap)) {
@@ -55,20 +57,20 @@ public final class ServerBootstrapFactory {
 
 		ChannelHandler handler;
 		ArrayList<ProxyHost> hostList = new ArrayList<>();
-		
-		if(proxyCode == Constant.PROXY01_CODE){
+
+		if (proxyCode == Constant.PROXY01_CODE) {
 			handler = new ProxyFrontendHandler();
 			hostList = ProxyHost.getProxy01HostList();
-		}else if(proxyCode == Constant.PROXY02_CODE){
+		} else if (proxyCode == Constant.PROXY02_CODE) {
 			handler = new ProxyBackendHandler();
 			hostList = ProxyHost.getProxy02HostList();
-		}else{
+		} else {
 			throw new IllegalArgumentException(
 					"ServerBootstrapFactory [getServerBootstrap] PROXY_CODE is error! the range is [1 - 2]..");
 		}
 		serBootstrap = createServerBootstrapProxy(handler);
-		bindServerBootstrapPort(serBootstrap,hostList);
-		
+		bindServerBootstrapPort(serBootstrap, hostList);
+
 		return serBootstrap;
 	}
 
@@ -76,12 +78,14 @@ public final class ServerBootstrapFactory {
 			ChannelHandler handler) {
 
 		ServerBootstrap bootstrap = new ServerBootstrap();
-		bootstrap.group(bossGroup,workerGroup)
+		bootstrap.group(bossGroup, workerGroup)
 				.option(ChannelOption.SO_REUSEADDR, false)
 				.channel(NioServerSocketChannel.class)
-				.handler(new LoggingHandler(LogLevel.INFO))
-				.childHandler(handler)
-				.childOption(ChannelOption.AUTO_READ, true);
+				// .handler(new LoggingHandler(LogLevel.INFO))
+				.childHandler(handler)//.option(ChannelOption.SO_KEEPALIVE, true)
+				.option(ChannelOption.SO_BACKLOG, Integer.MAX_VALUE);
+
+		// .childOption(ChannelOption.AUTO_READ, true);
 
 		return bootstrap;
 	}
@@ -89,11 +93,12 @@ public final class ServerBootstrapFactory {
 	/**
 	 * 绑定服务端口
 	 */
-	private static void bindServerBootstrapPort(ServerBootstrap serBootstrap,ArrayList<ProxyHost> hostList) {
+	private static void bindServerBootstrapPort(ServerBootstrap serBootstrap,
+			ArrayList<ProxyHost> hostList) {
 		try {
 
 			log.info("TcpProxy server ready for connections...");
-			
+
 			ArrayList<Channel> allchannels = new ArrayList<Channel>();
 			log.info("TcpProxy config: ");
 			for (ProxyHost host : hostList) {
@@ -101,20 +106,20 @@ public final class ServerBootstrapFactory {
 				log.info("local port = " + host.getLocalPort()
 						+ "|remote host=" + host.getRemoteHost()
 						+ "|remote port=" + host.getRemotePort());
-				Channel ch = serBootstrap.bind(host.getLocalPort()).sync().channel();
+				Channel ch = serBootstrap.bind(host.getLocalPort()).sync()
+						.channel();
 				allchannels.add(ch);
 			}
 			for (Channel ch : allchannels) {
 				ch.closeFuture().sync();
 			}
 
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
-		}finally {
+		} finally {
 			bossGroup.shutdownGracefully();
 			workerGroup.shutdownGracefully();
 		}
 	}
-	
 
 }

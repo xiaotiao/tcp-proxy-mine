@@ -18,6 +18,8 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import java.util.Objects;
 
 import com.liusu.tcp_proxy_mine.base.Constant;
+import com.liusu.tcp_proxy_mine.codec.MessageWrapDecoder;
+import com.liusu.tcp_proxy_mine.codec.MessageWrapEncoder;
 import com.liusu.tcp_proxy_mine.domain.MessageWrap;
 import com.liusu.tcp_proxy_mine.domain.ProxyRule;
 
@@ -39,45 +41,60 @@ public class NetGateProxyBackendChannelHandler extends NetGateProxyChannelHandle
 		if(msg instanceof MessageWrap){
 			final MessageWrap mess = (MessageWrap)msg;
 			//鎵�湁璇锋眰鐩稿悓host鍜岀鍙ｇ殑鍖呴噸鐢ㄧ浉鍚岀殑channel
-//			String host = mess.getRemoteAddress().getHostName();
-//			int port = mess.getRemoteAddress().getPort();
-			
-//			StringBuilder searchFlag = new StringBuilder().append(host).append(port);
-			
 			String searchFlag = new StringBuilder().append(mess.getDestChannelID()).toString();
 			Channel channel = Constant.inboundChannles.get(searchFlag);
 			
-			if(Objects.isNull(channel) || !channel.isActive()){
-				Bootstrap b = new Bootstrap(); 
-				b.group(ctx.channel().eventLoop())
-				 .channel(NioSocketChannel.class)
-				 .option(ChannelOption.TCP_NODELAY, true)
-				 .handler(new AcceptServerSideChannelHandler(searchFlag.toString(),mess));
-				
-				 ChannelFuture f = b.connect(mess.getRemoteAddress()).addListener(new ChannelFutureListener() {
-					
-					@Override
-					public void operationComplete(ChannelFuture future) throws Exception {
-						Object obj = MessageWrap.wrapMessageByteBuf(mess);
-						if(obj instanceof ByteBuf){
-							ByteBuf buf = (ByteBuf) obj;
-							if(buf.readableBytes()>0){
-								future.channel().writeAndFlush(obj);
-							}
-						}
-//						future.channel().writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
-					}
-				});
-				 channel = f.channel();
+			int type = mess.getType();
+			int inActiveType = MessageWrap.MessageType.InActive.getType();
+			//断开连接
+			if(type == inActiveType){
+				if(!Objects.isNull(channel) && channel.isActive()){
+					Constant.inboundChannles.remove(searchFlag);
+					channel.close();
+				}
 			}else{
-				Object obj = MessageWrap.wrapMessageByteBuf(mess);
-				if(obj instanceof ByteBuf){
-					ByteBuf buf = (ByteBuf) obj;
-					if(buf.readableBytes()>0){
-						channel.writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
+				if(Objects.isNull(channel) || !channel.isActive()){
+					Bootstrap b = new Bootstrap(); 
+					b.group(ctx.channel().eventLoop())
+					 .channel(NioSocketChannel.class)
+					 .option(ChannelOption.TCP_NODELAY, true)
+					 .handler(new MessageWrapEncoder())
+					 .handler(new AcceptServerSideChannelHandler(searchFlag.toString(),mess));
+					
+					 ChannelFuture f = b.connect(mess.getRemoteAddress()).addListener(new ChannelFutureListener() {
+						
+						@Override
+						public void operationComplete(ChannelFuture future) throws Exception {
+//							Object obj = MessageWrap.wrapMessageByteBuf(mess);
+//							if(obj instanceof ByteBuf){
+//								ByteBuf buf = (ByteBuf) obj;
+//								if(buf.readableBytes()>0){
+//									future.channel().writeAndFlush(obj);
+//								}
+//							}
+							if(mess.getType() == MessageWrap.MessageType.Application.getType()){
+								future.channel().writeAndFlush(mess.getMessage());
+							}
+//							future.channel().writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
+						}
+					});
+					 channel = f.channel();
+				}else{
+//					Object obj = MessageWrap.wrapMessageByteBuf(mess);
+//					if(obj instanceof ByteBuf){
+//						ByteBuf buf = (ByteBuf) obj;
+//						if(buf.readableBytes()>0){
+//							channel.writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
+//						}
+//					}
+					
+					if(mess.getType() == MessageWrap.MessageType.Application.getType()){
+						channel.writeAndFlush(mess.getMessage());
 					}
 				}
 			}
+				
+				
 			
 			
 		}else{
@@ -113,8 +130,8 @@ public class NetGateProxyBackendChannelHandler extends NetGateProxyChannelHandle
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg)
 				throws Exception {
-//			mess.setMessage(msg);
-			mess = MessageWrap.wrapMessageByteArray(mess.getDestChannelID(), msg, mess.getRemoteAddress());
+			mess.setMessage(msg);
+//			mess = MessageWrap.wrapMessageByteArray(mess.getDestChannelID(), msg, mess.getRemoteAddress());
 			//姝ゅ鍙彂鐢無utbound浜嬩欢
 			Channel c = Constant.inboundChannles.get(SendToNetGateChannelHandler.flag);
 			if(Objects.isNull(c) || !c.isActive()){
@@ -127,8 +144,12 @@ public class NetGateProxyBackendChannelHandler extends NetGateProxyChannelHandle
 					@Override
 					protected void initChannel(Channel ch) throws Exception {
 						ChannelPipeline p = ch.pipeline();
-						p.addLast(new ObjectEncoder());
-						p.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+//						p.addLast(new ObjectEncoder());
+//						p.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+						
+						p.addLast(new MessageWrapEncoder());
+						p.addLast(new MessageWrapDecoder(Integer.MAX_VALUE,ClassResolvers.cacheDisabled(null)));
+						
 						p.addLast(new SendToNetGateChannelHandler());
 					}
 				});

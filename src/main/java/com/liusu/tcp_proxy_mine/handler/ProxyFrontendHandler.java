@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 import com.liusu.tcp_proxy_mine.base.Constant;
 import com.liusu.tcp_proxy_mine.codec.ByteBufDecoder;
 import com.liusu.tcp_proxy_mine.codec.ByteBufEncoder;
+import com.liusu.tcp_proxy_mine.codec.MessageWrapDecoder;
+import com.liusu.tcp_proxy_mine.codec.MessageWrapEncoder;
 import com.liusu.tcp_proxy_mine.domain.ProxyRule;
 
 import io.netty.channel.Channel;
@@ -43,8 +45,12 @@ public class ProxyFrontendHandler extends ChannelInitializer<Channel>{
 //		p.addLast(new ByteBufEncoder());
 //		p.addLast(new ByteBufDecoder());
 		p.addLast(new CommonProxyChannelHandler(commonRule));
-		p.addLast(new ObjectEncoder());
-		p.addLast(new ObjectDecoder(Integer.MAX_VALUE,ClassResolvers.cacheDisabled(null)));
+//		p.addLast(new ObjectEncoder());
+//		p.addLast(new ObjectDecoder(Integer.MAX_VALUE,ClassResolvers.cacheDisabled(null)));
+//		
+		p.addLast(new MessageWrapEncoder());
+		p.addLast(new MessageWrapDecoder(Integer.MAX_VALUE,ClassResolvers.cacheDisabled(null)));
+		
 		p.addLast(new NetGateProxyChannelHandler(netGateRule));
 	}
 

@@ -14,9 +14,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-
 import java.util.Objects;
-
 import com.liusu.tcp.proxy.mine.base.Constant;
 import com.liusu.tcp.proxy.mine.codec.MessageWrapDecoder;
 import com.liusu.tcp.proxy.mine.codec.MessageWrapEncoder;

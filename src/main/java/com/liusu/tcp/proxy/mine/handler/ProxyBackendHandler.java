@@ -6,9 +6,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-
 import java.util.regex.Pattern;
-
 import com.liusu.tcp.proxy.mine.codec.MessageWrapDecoder;
 import com.liusu.tcp.proxy.mine.codec.MessageWrapEncoder;
 import com.liusu.tcp.proxy.mine.domain.ProxyHost;

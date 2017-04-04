@@ -8,7 +8,6 @@ import com.liusu.tcp.proxy.mine.codec.ByteBufEncoder;
 import com.liusu.tcp.proxy.mine.codec.MessageWrapDecoder;
 import com.liusu.tcp.proxy.mine.codec.MessageWrapEncoder;
 import com.liusu.tcp.proxy.mine.domain.ProxyRule;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

@@ -60,10 +60,10 @@ public final class ServerBootstrapFactory {
 		ChannelHandler handler;
 		ArrayList<ProxyHost> hostList = new ArrayList<>();
 
-		if (proxyCode == Constant.PROXY01_CODE) {
+		if (proxyCode == Constant.ProxyEnum.PROXY01.getProxyCode()) {
 			handler = new ProxyFrontendHandler();
 			hostList = ProxyHost.getProxy01HostList();
-		} else if (proxyCode == Constant.PROXY02_CODE) {
+		} else if (proxyCode == Constant.ProxyEnum.PROXY02.getProxyCode()) {
 			handler = new ProxyBackendHandler();
 			hostList = ProxyHost.getProxy02HostList();
 		} else {
@@ -122,6 +122,10 @@ public final class ServerBootstrapFactory {
 			bossGroup.shutdownGracefully();
 			workerGroup.shutdownGracefully();
 		}
+	}
+
+	public static EventLoopGroup getWorkergroup() {
+		return workerGroup;
 	}
 
 }

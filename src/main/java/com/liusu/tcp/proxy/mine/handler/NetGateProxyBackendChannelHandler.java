@@ -31,14 +31,12 @@ public class NetGateProxyBackendChannelHandler extends NetGateProxyChannelHandle
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg)
 			throws Exception {
-		//TODO 浣跨敤rule杩涜鏍￠獙,涓嶆弧瓒虫潯浠剁殑涓嶅鐞�鐩存帴鍚戜笅涓�釜handler浼犻�
 		if(Objects.isNull(rule)){
 			 throw new IllegalArgumentException(" NetGateProxyBackendChannelHandler [channelRead],please define your ProxyRule..");
 		}
 		
 		if(msg instanceof MessageWrap){
 			final MessageWrap mess = (MessageWrap)msg;
-			//鎵�湁璇锋眰鐩稿悓host鍜岀鍙ｇ殑鍖呴噸鐢ㄧ浉鍚岀殑channel
 			String searchFlag = new StringBuilder().append(mess.getDestChannelID()).toString();
 			Channel channel = Constant.inboundChannles.get(searchFlag);
 			

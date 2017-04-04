@@ -149,22 +149,17 @@
 		</dependency>
 		<!-- Spring end -->
 
-		<!-- redis配置 -->
-		<dependency>
-			<groupId>redis.clients</groupId>
-			<artifactId>jedis</artifactId>
-			<version>2.7.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-redis</artifactId>
-			<version>1.6.0.RELEASE</version>
-		</dependency>
-
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.5</version>
+		</dependency>
+		
+		<!-- 引入MQ依赖 -->
+		<dependency>
+			<groupId>com.wondersoft</groupId>
+			<artifactId>message-queue-util</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>

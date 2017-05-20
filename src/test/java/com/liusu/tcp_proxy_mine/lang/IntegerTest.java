@@ -1,5 +1,10 @@
 package com.liusu.tcp_proxy_mine.lang;
 
+import java.nio.ByteBuffer;
+
+import io.netty.buffer.Unpooled;
+import io.netty.util.internal.PlatformDependent;
+
 import org.junit.Test;
 
 public class IntegerTest {
@@ -24,5 +29,11 @@ public class IntegerTest {
 	@Test
 	public void test03(){
 		System.out.println(261 & 0xFFFFFFFFL);
+	}
+	
+	@Test
+	public void test04(){
+		long value = PlatformDependent.directBufferAddress(ByteBuffer.allocate(458096704));
+		System.out.println(value);
 	}
 }

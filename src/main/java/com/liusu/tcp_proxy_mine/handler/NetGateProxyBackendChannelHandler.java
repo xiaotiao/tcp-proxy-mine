@@ -1,8 +1,6 @@
 package com.liusu.tcp_proxy_mine.handler;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -12,8 +10,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
-import io.netty.handler.codec.serialization.ObjectDecoder;
-import io.netty.handler.codec.serialization.ObjectEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.util.Objects;
 
@@ -39,60 +37,90 @@ public class NetGateProxyBackendChannelHandler extends NetGateProxyChannelHandle
 		}
 		
 		if(msg instanceof MessageWrap){
+			
 			final MessageWrap mess = (MessageWrap)msg;
 			//鎵�湁璇锋眰鐩稿悓host鍜岀鍙ｇ殑鍖呴噸鐢ㄧ浉鍚岀殑channel
 			String searchFlag = new StringBuilder().append(mess.getDestChannelID()).toString();
-			Channel channel = Constant.inboundChannles.get(searchFlag);
 			
-			int type = mess.getType();
-			int inActiveType = MessageWrap.MessageType.InActive.getType();
-			//断开连接
-			if(type == inActiveType){
-				if(!Objects.isNull(channel) && channel.isActive()){
-					Constant.inboundChannles.remove(searchFlag);
-					channel.close();
-				}
-			}else{
-				if(Objects.isNull(channel) || !channel.isActive()){
-					Bootstrap b = new Bootstrap(); 
-					b.group(ctx.channel().eventLoop())
-					 .channel(NioSocketChannel.class)
-					 .option(ChannelOption.TCP_NODELAY, true)
-					 .handler(new MessageWrapEncoder())
-					 .handler(new AcceptServerSideChannelHandler(searchFlag.toString(),mess));
-					
-					 ChannelFuture f = b.connect(mess.getRemoteAddress()).addListener(new ChannelFutureListener() {
-						
-						@Override
-						public void operationComplete(ChannelFuture future) throws Exception {
-//							Object obj = MessageWrap.wrapMessageByteBuf(mess);
-//							if(obj instanceof ByteBuf){
-//								ByteBuf buf = (ByteBuf) obj;
-//								if(buf.readableBytes()>0){
-//									future.channel().writeAndFlush(obj);
-//								}
-//							}
-							if(mess.getType() == MessageWrap.MessageType.Application.getType()){
-								future.channel().writeAndFlush(mess.getMessage());
-							}
-//							future.channel().writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
-						}
-					});
-					 channel = f.channel();
+			Channel channel = null;
+			synchronized (Constant.class) {
+				channel = Constant.inboundChannles.get(searchFlag);
+				
+				System.out.println("channel searchFlag :"+searchFlag);
+				System.out.println("channel 01 :"+channel);
+				int type = mess.getType();
+				int inActiveType = MessageWrap.MessageType.InActive.getType();
+				//断开连接
+				if(type == inActiveType){
+					if(!Objects.isNull(channel) && channel.isActive()){
+						Constant.inboundChannles.remove(searchFlag);
+						channel.close();
+					}
 				}else{
-//					Object obj = MessageWrap.wrapMessageByteBuf(mess);
-//					if(obj instanceof ByteBuf){
-//						ByteBuf buf = (ByteBuf) obj;
-//						if(buf.readableBytes()>0){
-//							channel.writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
+					//|| !channel.isActive()
+					System.out.println("channel 02 :"+channel);
+					if(Objects.isNull(channel) ){
+						Bootstrap b = new Bootstrap(); 
+						b.group(ctx.channel().eventLoop())
+						 .channel(NioSocketChannel.class)
+						 .option(ChannelOption.TCP_NODELAY, true)
+//						 .handler(new LoggingHandler(LogLevel.INFO))
+						 .handler(new MessageWrapEncoder())
+						 .handler(new AcceptServerSideChannelHandler(searchFlag.toString(),mess));
+						
+						 ChannelFuture f = b.connect(mess.getRemoteAddress()).addListener(new ChannelFutureListener() {
+							
+							@Override
+							public void operationComplete(ChannelFuture future) throws Exception {
+//								Object obj = MessageWrap.wrapMessageByteBuf(mess);
+//								if(obj instanceof ByteBuf){
+//									ByteBuf buf = (ByteBuf) obj;
+//									if(buf.readableBytes()>0){
+//										future.channel().writeAndFlush(obj);
+//									}
+//								}
+								future.channel().flush();
+								if(mess.getType() == MessageWrap.MessageType.Application.getType()){
+									
+									future.channel().writeAndFlush(mess.getMessage());
+								}
+//								future.channel().writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
+							}
+						});
+						 channel = f.channel();
+						 Constant.inboundChannles.put(searchFlag, channel);
+						 
+						 System.out.println("channel 03 :"+channel +" eventLoop: "+Thread.currentThread().getName());
+						
+					}else{
+//						Object obj = MessageWrap.wrapMessageByteBuf(mess);
+//						if(obj instanceof ByteBuf){
+//							ByteBuf buf = (ByteBuf) obj;
+//							if(buf.readableBytes()>0){
+//								channel.writeAndFlush(MessageWrap.wrapMessageByteBuf(mess));
+//							}
 //						}
-//					}
-					
-					if(mess.getType() == MessageWrap.MessageType.Application.getType()){
-						channel.writeAndFlush(mess.getMessage());
+						 System.out.println("channel isWritable: "+channel.isWritable());
+							
+						if(mess.getType() == MessageWrap.MessageType.Application.getType()){
+							 System.out.println("channel 04 : isActive"+channel+" : isActive"+channel.isActive());
+							
+							if(channel.isActive()){
+								channel.flush();
+								channel.writeAndFlush(mess.getMessage());
+							}else{
+								 System.out.println("channel 05 : write"+channel);
+								channel.write(mess.getMessage());
+//								channel.flush();
+							}
+							
+						}
 					}
 				}
 			}
+		
+			
+
 				
 				
 			
@@ -146,7 +174,7 @@ public class NetGateProxyBackendChannelHandler extends NetGateProxyChannelHandle
 						ChannelPipeline p = ch.pipeline();
 //						p.addLast(new ObjectEncoder());
 //						p.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-						
+						p.addLast( new LoggingHandler(LogLevel.INFO));
 						p.addLast(new MessageWrapEncoder());
 						p.addLast(new MessageWrapDecoder(Integer.MAX_VALUE,ClassResolvers.cacheDisabled(null)));
 						

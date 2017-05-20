@@ -38,14 +38,18 @@ public class CommonProxyChannelHandler extends DefaultProxyChannelHandler {
 	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		super.channelActive(ctx);
-		
 		InetSocketAddress localAddress = (InetSocketAddress) ctx.channel().localAddress();
-		int type = MessageWrap.MessageType.Active.getType();
-		String channelID = ctx.channel().id().asShortText();
-		MessageWrap mess = MessageWrap.createEmptyMessageWrap(channelID, localAddress, type);
+		if(rule.isValid(localAddress.getPort())){
+			super.channelActive(ctx);
+			int type = MessageWrap.MessageType.Active.getType();
+			String channelID = ctx.channel().id().asShortText();
+			MessageWrap mess = MessageWrap.createEmptyMessageWrap(channelID, localAddress, type);
+			
+			sendToNetGate(ctx.channel().eventLoop(),mess);
+		}else{
+			ctx.fireChannelActive();
+		}
 		
-		sendToNetGate(ctx.channel().eventLoop(),mess);
 	}
 
 	@Override
@@ -82,14 +86,18 @@ public class CommonProxyChannelHandler extends DefaultProxyChannelHandler {
 	
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		super.channelInactive(ctx);
-		
 		InetSocketAddress localAddress = (InetSocketAddress) ctx.channel().localAddress();
-		int type = MessageWrap.MessageType.InActive.getType();
-		String channelID = ctx.channel().id().asShortText();
-		MessageWrap mess = MessageWrap.createEmptyMessageWrap(channelID, localAddress, type);
+		if(rule.isValid(localAddress.getPort())){
+			super.channelInactive(ctx);
+			int type = MessageWrap.MessageType.InActive.getType();
+			String channelID = ctx.channel().id().asShortText();
+			MessageWrap mess = MessageWrap.createEmptyMessageWrap(channelID, localAddress, type);
+			
+			sendToNetGate(ctx.channel().eventLoop(),mess);
+		}else{
+			ctx.fireChannelInactive();
+		}
 		
-		sendToNetGate(ctx.channel().eventLoop(),mess);
 	}
 	
 	

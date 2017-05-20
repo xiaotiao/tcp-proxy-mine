@@ -33,9 +33,9 @@ public class PatternTest {
 	 */
 	@Test
 	public void testPattern03(){
-		Pattern pattern = Pattern.compile("(?:6553[0-6]|655[012][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|999[0-8]|99[0-8][0-9]|9[0-8][0-9]{2}|[1-8][0-9]{0,})");
-		
-		System.out.println(pattern.matcher("1").matches());
+		Pattern pattern = Pattern.compile("(?:6553[0-6]|655[012][0-9]|65[0-4][0-9]{2}|6[0-4][0-9]{3}|[1-5][0-9]{4}|999[0-8]|99[0-8][0-9]|9[0-9][0-9]|[1-8][0-9]{0,})");
+//		Pattern pattern = Pattern.compile("(?:9[0-9][0-9]{})");
+		System.out.println(pattern.matcher("465").matches());
 	}
 	
 	

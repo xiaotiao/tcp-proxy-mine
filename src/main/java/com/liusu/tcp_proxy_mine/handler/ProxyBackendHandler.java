@@ -1,18 +1,16 @@
 package com.liusu.tcp_proxy_mine.handler;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.serialization.ClassResolvers;
-import io.netty.handler.codec.serialization.ObjectDecoder;
-import io.netty.handler.codec.serialization.ObjectEncoder;
-
 import java.util.regex.Pattern;
-
 import com.liusu.tcp_proxy_mine.codec.MessageWrapDecoder;
 import com.liusu.tcp_proxy_mine.codec.MessageWrapEncoder;
 import com.liusu.tcp_proxy_mine.domain.ProxyHost;
 import com.liusu.tcp_proxy_mine.domain.ProxyRule;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 public class ProxyBackendHandler extends ChannelInitializer<Channel>{
 
@@ -24,7 +22,7 @@ public class ProxyBackendHandler extends ChannelInitializer<Channel>{
 		ProxyRule commonBackendRule = new ProxyRule(Pattern.compile(host.getLocalPort()+""));
 //		p.addLast(new ObjectEncoder());
 //		p.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-		
+//		p.addLast( new LoggingHandler(LogLevel.INFO));
 		p.addLast(new MessageWrapEncoder());
 		p.addLast(new MessageWrapDecoder(Integer.MAX_VALUE,ClassResolvers.cacheDisabled(null)));
 		
